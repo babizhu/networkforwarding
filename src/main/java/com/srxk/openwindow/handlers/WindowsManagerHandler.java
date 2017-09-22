@@ -5,9 +5,7 @@ import com.srxk.openwindow.cmd.Cmd;
 import com.srxk.openwindow.pojo.WindowStatus;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.ScheduledFuture;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,7 +56,7 @@ public class WindowsManagerHandler extends BaseHandler {
 
   public WindowStatus queryWindow(byte[] address) {
 //    System.out.println("========================================");
-    System.out.println(new Date().toLocaleString() + Arrays.toString(address) + "send");
+    log.debug(Arrays.toString(address) + "send");
 
 //    System.out.println( channel );
 //    System.out.println( channel.isOpen() );
@@ -67,15 +65,19 @@ public class WindowsManagerHandler extends BaseHandler {
     channel.writeAndFlush(request);
     isPending.set(true);
     int delaySecond = 3;
+
+    log.debug("before scheduledFuture="+ (scheduledFuture==null?"null":scheduledFuture.hashCode()));
     scheduledFuture = channel.eventLoop().schedule(() -> {
       if (isPending.compareAndSet(true, false)) {
         answer.add(WindowStatus.EMPTY);
-        System.out.println(new Date().toLocaleString() + Arrays.toString(address) + "Time out");
+        log.debug(Arrays.toString(address) + "Time out");
       }
     }, delaySecond, TimeUnit.SECONDS);
+    log.debug("after scheduledFuture="+ scheduledFuture.hashCode());
 //    scheduledFuture.can
     final WindowStatus result = waitResult();
 
     return result;
   }
+
 }

@@ -13,7 +13,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.nio.channels.ConnectionPendingException;
-import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,7 +22,7 @@ public class ProxyClient {
 
   private final String host;
   private int port;
-  private EventLoopGroup loop = new NioEventLoopGroup();
+  private EventLoopGroup loop = new NioEventLoopGroup(1);
   //  private Channel channel;
   private WindowsManagerHandler handler;
 
@@ -120,10 +121,6 @@ public class ProxyClient {
   public static void main(String[] args) throws ConnectTimeoutException, InterruptedException {
 
     final ProxyClient proxyClient = new ProxyClient("192.168.1.76", 4198);
-    proxyClient.connect();
-//    byte[] address = new byte[]{0x33, 0x44, 0x55};
-    Thread.sleep(2000);
-
     byte[] address = new byte[]{0x33, 0x44, 0x55};
     byte[] address1 = new byte[]{0x33, 0x44, 0x63};
     byte[] address2 = new byte[]{0x33, 0x44, 0x61};
@@ -135,30 +132,50 @@ public class ProxyClient {
     byte[] address8 = new byte[]{0x33, 0x44, 0x64};
     byte[][] by = {address, address1, address2, address3, address4, address5, address6, address7,
         address8};
-    for (int i = 0; i < 1; i++) {
-      try {
+    final ExecutorService service = Executors.newCachedThreadPool();
+    proxyClient.connect();
+//    byte[] address = new byte[]{0x33, 0x44, 0x55};
+    for (int i = 0; i < 2; i++) {
+      Thread.sleep(200);
 
-//        proxyClient.openWindow(address);
-//        Thread.sleep(15000);
-//        proxyClient.closeWindow(address);
-//        Thread.sleep(15000);
-//        System.out.println(proxyClient.queryWindow(address));
-//        Thread.sleep(200);
-//        System.out.println(proxyClient.queryWindow(address));
-//        Thread.sleep(200);
-//        System.out.println(proxyClient.queryWindow(address));
-//        Thread.sleep(200);
-        int k = 0;
-        for (byte[] bytes : by) {
+      final byte[] bytes = by[i];
+      service.submit(() -> {
+        try {
           System.out.println(proxyClient.queryWindow(bytes));
-          System.out.println("============================"+new Date().toLocaleString()+" 第"+((k++)+1)+"条====================================");
-
+        } catch (Exception e) {
+          System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+          e.printStackTrace();
         }
-
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      });
     }
+//
+//
+//
+//
+//    for (int i = 0; i < 1; i++) {
+//      try {
+//
+////        proxyClient.openWindow(address);
+////        Thread.sleep(15000);
+////        proxyClient.closeWindow(address);
+////        Thread.sleep(15000);
+////        System.out.println(proxyClient.queryWindow(address));
+////        Thread.sleep(200);
+////        System.out.println(proxyClient.queryWindow(address));
+////        Thread.sleep(200);
+////        System.out.println(proxyClient.queryWindow(address));
+////        Thread.sleep(200);
+//        int k = 0;
+//        for (byte[] bytes : by) {
+//          System.out.println(proxyClient.queryWindow(bytes));
+//          System.out.println("============================"+new Date().toLocaleString()+" 第"+((k++)+1)+"条====================================");
+//
+//        }
+//
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
 //      try {
 //        System.out.println( "exit program");
 ////        Thread.sleep(1000);
